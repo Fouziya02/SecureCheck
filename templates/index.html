@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SecureCheck | Password Security</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+
+    <!-- Separate JavaScript file -->
+    <script
+      src="{{ url_for('static', filename='js/script.js') }}"
+      defer
+    ></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <!-- HEADER -->
+      <header class="app-header">
+        <h1>SecureCheck</h1>
+        <p class="subtitle">Password Security Dashboard</p>
+      </header>
+
+      <!-- NAVIGATION -->
+      <nav class="tab-navigation" aria-label="Main navigation">
+        <button
+          type="button"
+          class="tab-button active"
+          data-tab="analyzer"
+          aria-selected="true"
+        >
+          Password Analyzer
+        </button>
+
+        <button
+          type="button"
+          class="tab-button"
+          data-tab="dashboard"
+          aria-selected="false"
+        >
+          Dashboard
+        </button>
+
+        <button
+          type="button"
+          class="tab-button"
+          data-tab="about"
+          aria-selected="false"
+        >
+          About
+        </button>
+      </nav>
+
+      <!-- =====================================
+         TAB 1: PASSWORD ANALYZER
+    ====================================== -->
+
+      <section class="tab-content active" id="analyzer">
+        <section class="checker-section">
+          <h2>Password Analyzer</h2>
+
+          <p>
+            Evaluate a fictional sample password using educational security
+            checks.
+          </p>
+
+          <form method="POST" action="{{ url_for('home') }}">
+            <label for="password"> Enter a fictional sample password </label>
+
+            <div class="password-wrapper">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter a sample password"
+                autocomplete="off"
+                maxlength="256"
+                required
+              />
+
+              <button
+                type="button"
+                id="togglePassword"
+                class="toggle-password"
+                aria-label="Show password"
+              >
+                👁
+              </button>
+            </div>
+
+            <!-- LIVE STRENGTH -->
+
+            <div id="liveStrength" hidden aria-live="polite">
+              <div class="percentage-info">
+                <span>Live Strength</span>
+
+                <span id="liveStrengthText"> 0% - Not evaluated </span>
+              </div>
+
+              <div class="progress-container">
+                <div id="liveProgressBar" class="progress-bar"></div>
+              </div>
+            </div>
+
+            <button type="submit">Analyze Password</button>
+          </form>
+
+          <!-- SERVER ANALYSIS RESULT -->
+
+          {% if result %}
+
+          <div class="result" id="resultSection">
+            <h2>Analysis Result</h2>
+
+            <h3 class="strength-{{ result.strength | lower }}">
+              {{ result.strength }}
+            </h3>
+
+            <div class="percentage-info">
+              <span>Security Score</span>
+              <span>{{ result.percentage }}%</span>
+            </div>
+
+            <div class="progress-container">
+              <div
+                class="progress-bar strength-bar-{{ result.strength | lower }}"
+                data-percentage="{{ result.percentage }}"
+              ></div>
+            </div>
+
+            <!-- SECURITY CHECKLIST -->
+
+            <h4>Security Checklist</h4>
+
+            {% for check, passed in result.checks.items() %}
+
+            <p class="check-item">
+              {% if passed %}
+
+              <span class="passed">✓</span>
+
+              {% else %}
+
+              <span class="failed">✗</span>
+
+              {% endif %} {{ check }}
+            </p>
+
+            {% endfor %}
+
+            <!-- IMPROVEMENT SUGGESTIONS -->
+
+            {% if result.suggestions %}
+
+            <h4>Improvement Suggestions</h4>
+
+            {% for suggestion in result.suggestions %}
+
+            <p class="suggestion-item">{{ suggestion }}</p>
+
+            {% endfor %} {% else %}
+
+            <p class="success-message">
+              All configured educational security checks passed!
+            </p>
+
+            {% endif %}
+          </div>
+
+          {% endif %}
+        </section>
+      </section>
+
+      <!-- =====================================
+         TAB 2: DASHBOARD
+    ====================================== -->
+
+      <section class="tab-content" id="dashboard">
+        <section class="dashboard-section">
+          <h2>Security Overview</h2>
+
+          <p>Overview of password analysis results.</p>
+
+          <!-- STATISTICS -->
+
+          <div class="dashboard-grid">
+            <div class="stat-card">
+              <h3>Total Analyzed</h3>
+              <p>{{ stats.total }}</p>
+            </div>
+
+            <div class="stat-card">
+              <h3>Weak</h3>
+              <p>{{ stats.weak }}</p>
+            </div>
+
+            <div class="stat-card">
+              <h3>Moderate</h3>
+              <p>{{ stats.moderate }}</p>
+            </div>
+
+            <div class="stat-card">
+              <h3>Strong</h3>
+              <p>{{ stats.strong }}</p>
+            </div>
+          </div>
+
+          <!-- STRENGTH DISTRIBUTION -->
+
+          <div
+            class="chart-section"
+            id="strengthChart"
+            data-total="{{ stats.total }}"
+          >
+            <h3>Password Strength Distribution</h3>
+
+            <!-- WEAK -->
+
+            <div class="chart-row">
+              <span>Weak</span>
+
+              <div class="chart-track">
+                <div
+                  class="chart-bar chart-weak"
+                  data-count="{{ stats.weak }}"
+                ></div>
+              </div>
+
+              <span>{{ stats.weak }}</span>
+            </div>
+
+            <!-- MODERATE -->
+
+            <div class="chart-row">
+              <span>Moderate</span>
+
+              <div class="chart-track">
+                <div
+                  class="chart-bar chart-moderate"
+                  data-count="{{ stats.moderate }}"
+                ></div>
+              </div>
+
+              <span>{{ stats.moderate }}</span>
+            </div>
+
+            <!-- STRONG -->
+
+            <div class="chart-row">
+              <span>Strong</span>
+
+              <div class="chart-track">
+                <div
+                  class="chart-bar chart-strong"
+                  data-count="{{ stats.strong }}"
+                ></div>
+              </div>
+
+              <span>{{ stats.strong }}</span>
+            </div>
+          </div>
+
+          <!-- RECENT ANALYSIS ACTIVITY -->
+
+          <div class="activity-section">
+            <h3>Recent Analysis Activity</h3>
+
+            {% if recent_activity %}
+
+            <div class="activity-list">
+              {% for activity in recent_activity %}
+
+              <div class="activity-item">
+                <div class="activity-details">
+                  <span class="strength-{{ activity.strength | lower }}">
+                    {{ activity.strength }}
+                  </span>
+
+                  <p>{{ activity.time }}</p>
+                </div>
+
+                <div class="activity-score">{{ activity.percentage }}%</div>
+              </div>
+
+              {% endfor %}
+            </div>
+
+            {% else %}
+
+            <p class="empty-activity">No recent analysis activity yet.</p>
+
+            {% endif %}
+
+            <!-- CLEAR HISTORY -->
+
+            <form
+              method="POST"
+              action="{{ url_for('clear_history') }}"
+              onsubmit="
+                return confirm(
+                  'Are you sure you want to clear all analysis history? This action cannot be undone.',
+                );
+              "
+            >
+              <button type="submit" class="clear-history-button">
+                Clear Analysis History
+              </button>
+            </form>
+          </div>
+        </section>
+      </section>
+
+      <!-- =====================================
+         TAB 3: ABOUT
+    ====================================== -->
+
+      <section class="tab-content" id="about">
+        <section class="about-section">
+          <h2>About SecureCheck</h2>
+
+          <p>
+            SecureCheck is an educational password strength analysis application
+            designed to demonstrate password security concepts.
+          </p>
+
+          <h3>Key Features</h3>
+
+          <ul>
+            <li>Password strength analysis</li>
+            <li>Live password strength indicator</li>
+            <li>Security checklist</li>
+            <li>Common password detection</li>
+            <li>Predictable pattern detection</li>
+            <li>Repeated character detection</li>
+            <li>Improvement suggestions</li>
+            <li>Dashboard statistics</li>
+            <li>Password strength distribution chart</li>
+            <li>Recent analysis activity</li>
+            <li>SQLite database storage</li>
+            <li>Analysis history management</li>
+          </ul>
+
+          <h3>Security Criteria</h3>
+
+          <ul>
+            <li>Minimum 12 characters</li>
+            <li>Minimum 16 characters</li>
+            <li>Uppercase letters</li>
+            <li>Lowercase letters</li>
+            <li>Numbers</li>
+            <li>Special characters</li>
+            <li>Common password detection</li>
+            <li>Predictable sequence detection</li>
+            <li>Repeated character detection</li>
+          </ul>
+
+          <h3>Technologies Used</h3>
+
+          <ul>
+            <li>Python</li>
+            <li>Flask</li>
+            <li>HTML5</li>
+            <li>CSS3</li>
+            <li>JavaScript</li>
+            <li>SQLite</li>
+          </ul>
+
+          <h3>Privacy Information</h3>
+
+          <p>
+            SecureCheck records analysis statistics, not the actual passwords
+            entered by users.
+          </p>
+
+          <p>
+            SecureCheck uses an educational scoring method. Its results do not
+            guarantee password security.
+          </p>
+        </section>
+      </section>
+
+      <!-- FOOTER -->
+
+      <footer class="footer">
+        <p>SecureCheck | Educational Cybersecurity Project</p>
+      </footer>
+    </div>
+  </body>
+</html>

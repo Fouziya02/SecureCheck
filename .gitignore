@@ -1,0 +1,9 @@
+
+venv/
+.venv/
+__pycache__/
+*.pyc
+.env
+securecheck.db
+instance/
+.DS_Store
